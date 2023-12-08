@@ -52,13 +52,13 @@ io.on('connection', (socket) => {
                     [
                         {
                             protocol: 'udp',
-                            ip: '0.0.0.0',
-                            announcedIp: '127.0.0.1',
+                            ip: '18.142.128.26',
+                            announcedIp: null,
                         },
                         {
                             protocol: 'tcp',
-                            ip: '0.0.0.0',
-                            announcedIp: '127.0.0.1',
+                            ip: '18.142.128.26',
+                            announcedIp: null,
                         }
                     ]
             })
