@@ -44,24 +44,27 @@ io.on('connection', (socket) => {
                 },
             ];
 
-            const worker = await createWorker()
+            const worker = await createWorker({
+                rtcMinPort:10000,
+                rtcMaxPort:59999
+            })
             rooms[room].worker = worker;
             rooms[room].router = await worker.createRouter({ mediaCodecs });
-            rooms[room].webRtcServer = await worker.createWebRtcServer({
-                listenInfos:
-                    [
-                        {
-                            protocol: 'udp',
-                            ip: '18.142.128.26',
-                            announcedIp: null,
-                        },
-                        {
-                            protocol: 'tcp',
-                            ip: '18.142.128.26',
-                            announcedIp: null,
-                        }
-                    ]
-            })
+            // rooms[room].webRtcServer = await worker.createWebRtcServer({
+            //     listenInfos :
+            //     [
+            //       {
+            //         protocol : 'udp',
+            //         ip       : '0.0.0.0',
+            //         announcedIp: '127.0.0.1',
+            //     },
+            //       {
+            //         protocol : 'tcp',
+            //         ip       : '0.0.0.0',
+            //         announcedIp: '127.0.0.1',
+            //     }
+            //     ]
+            //   })
             rooms[room].transports = [];
             rooms[room].producers = [];
             rooms[room].consumers = [];
@@ -71,12 +74,17 @@ io.on('connection', (socket) => {
 
     socket.on('createWebRtcTransport', async ({ producing, sctpCapabilities, room, socketId }, callback) => {
         const transportType = producing ? 'producerTransport' : 'consumerTransport';
+        // webRtcServer: rooms[room].webRtcServer,
         const transport = await rooms[room].router.createWebRtcTransport({
-            webRtcServer: rooms[room].webRtcServer,
+            listenIps: [
+                {
+                  ip: '18.142.128.26', // replace with relevant IP address
+                  announcedIp: null,
+                }
+              ],
             enableUdp: true,
             enableTcp: true,
             preferUdp: true,
-            sctpCapabilities
         });
         if (rooms[room].transports[socketId]) {
             rooms[room].transports = { ...rooms[room].transports, [socketId]: [...rooms[room].transports[socketId], { [transportType]: transport, consuming: !producing, socketId: socket.id }] };
