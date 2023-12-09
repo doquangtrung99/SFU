@@ -20,7 +20,17 @@ const io = socketIO(server, {
 
 const rooms = {}
 const connects = {}
-io.on('connection', (socket) => {
+let worker;
+const initWorker = async () => {
+    worker = await createWorker({
+        rtcMinPort:10000,
+        rtcMaxPort:59999
+    })
+}
+
+initWorker();
+
+io.on('connection', async (socket) => {
 
     socket.on('joinRoom', async ({ room }, callback) => {
         connects[socket.id] = room
@@ -44,27 +54,7 @@ io.on('connection', (socket) => {
                 },
             ];
 
-            const worker = await createWorker({
-                rtcMinPort:10000,
-                rtcMaxPort:59999
-            })
-            rooms[room].worker = worker;
             rooms[room].router = await worker.createRouter({ mediaCodecs });
-            // rooms[room].webRtcServer = await worker.createWebRtcServer({
-            //     listenInfos :
-            //     [
-            //       {
-            //         protocol : 'udp',
-            //         ip       : '0.0.0.0',
-            //         announcedIp: '127.0.0.1',
-            //     },
-            //       {
-            //         protocol : 'tcp',
-            //         ip       : '0.0.0.0',
-            //         announcedIp: '127.0.0.1',
-            //     }
-            //     ]
-            //   })
             rooms[room].transports = [];
             rooms[room].producers = [];
             rooms[room].consumers = [];
@@ -78,9 +68,8 @@ io.on('connection', (socket) => {
         const transport = await rooms[room].router.createWebRtcTransport({
             listenIps: [
                 {
-                  ip: '13.228.225.19', // replace with relevant IP address
+                  ip: 'https://sfube.onrender.com', // replace with relevant IP address
                   announcedIp: null,
-                  port: 50000,
                 }
               ],
             enableUdp: true,
