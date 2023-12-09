@@ -68,7 +68,7 @@ io.on('connection', async (socket) => {
         const transport = await rooms[room].router.createWebRtcTransport({
             listenIps: [
                 {
-                  ip: 'https://sfube.onrender.com', // replace with relevant IP address
+                  ip: '216.24.57.253', // replace with relevant IP address
                   announcedIp: null,
                 }
               ],
