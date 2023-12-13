@@ -23,8 +23,8 @@ const connects = {}
 let worker;
 const initWorker = async () => {
     worker = await createWorker({
-        rtcMinPort:10000,
-        rtcMaxPort:59999
+        rtcMinPort:4000,
+        rtcMaxPort:4999
     })
 }
 
@@ -37,22 +37,57 @@ io.on('connection', async (socket) => {
 
         if (!rooms[room]) {
             rooms[room] = {}
-            const mediaCodecs = [
-                {
-                    kind: "audio",
-                    mimeType: "audio/opus",
-                    clockRate: 48000,
-                    channels: 2
-                },
-                {
-                    kind: 'video',
-                    mimeType: 'video/VP8',
-                    clockRate: 90000,
-                    parameters: {
-                        'x-google-start-bitrate': 1000,
-                    },
-                },
-            ];
+            const mediaCodecs =[
+				{
+					kind      : 'audio',
+					mimeType  : 'audio/opus',
+					clockRate : 48000,
+					channels  : 2
+				},
+				{
+					kind       : 'video',
+					mimeType   : 'video/VP8',
+					clockRate  : 90000,
+					parameters :
+					{
+						'x-google-start-bitrate' : 1000
+					}
+				},
+				{
+					kind       : 'video',
+					mimeType   : 'video/VP9',
+					clockRate  : 90000,
+					parameters :
+					{
+						'profile-id'             : 2,
+						'x-google-start-bitrate' : 1000
+					}
+				},
+				{
+					kind       : 'video',
+					mimeType   : 'video/h264',
+					clockRate  : 90000,
+					parameters :
+					{
+						'packetization-mode'      : 1,
+						'profile-level-id'        : '4d0032',
+						'level-asymmetry-allowed' : 1,
+						'x-google-start-bitrate'  : 1000
+					}
+				},
+				{
+					kind       : 'video',
+					mimeType   : 'video/h264',
+					clockRate  : 90000,
+					parameters :
+					{
+						'packetization-mode'      : 1,
+						'profile-level-id'        : '42e01f',
+						'level-asymmetry-allowed' : 1,
+						'x-google-start-bitrate'  : 1000
+					}
+				}
+			];
 
             rooms[room].router = await worker.createRouter({ mediaCodecs });
             rooms[room].transports = [];
@@ -64,12 +99,11 @@ io.on('connection', async (socket) => {
 
     socket.on('createWebRtcTransport', async ({ producing, sctpCapabilities, room, socketId }, callback) => {
         const transportType = producing ? 'producerTransport' : 'consumerTransport';
-        // webRtcServer: rooms[room].webRtcServer,
         const transport = await rooms[room].router.createWebRtcTransport({
             listenIps: [
                 {
                   ip: '0.0.0.0', // replace with relevant IP address
-                  announcedIp: '54.80.134.202',
+                  announcedIp: '44.194.51.58',
                 }
               ],
             enableUdp: true,
@@ -106,7 +140,7 @@ io.on('connection', async (socket) => {
     })
 
     socket.on('produce', async ({ transportId, kind, rtpParameters, appData, room, socketId }, callback) => {
-
+        
         const producer = await findTransport(room, false, transportId, socketId)
             .produce({
                 kind,
@@ -198,6 +232,7 @@ io.on('connection', async (socket) => {
                 }
             }
         }
+
         delete rooms[room].consumers[socket.id]
         delete rooms[room].transports[socket.id]
         delete connects[socket.id]
@@ -206,6 +241,6 @@ io.on('connection', async (socket) => {
     });
 });
 
-server.listen(3000, () => {
+server.listen(1300, () => {
     console.log('Server is running on http://localhost:3000');
 });
